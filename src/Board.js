@@ -32,7 +32,7 @@ export default function Board () {
     const rules = new Chess(fen);
 
 
-    return <Chessground width={500} config={{
+    return <Chessground width={600} height={600} config={{
         key:'diplomacy-chess',
         fen,
         orientation: color,

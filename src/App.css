@@ -22,3 +22,13 @@
 .board {
   width: 400px;
 }
+
+.idInput {
+  font-size: calc(10px + 2vmin);
+  width: calc((10px + 2vmin)*20);
+  text-align: center;
+}
+
+button {
+  font-size: calc(10px + 2vmin);
+}
