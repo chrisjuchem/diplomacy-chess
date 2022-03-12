@@ -6,6 +6,8 @@ export default function arbitrate(moveA, moveB, fen) {
     const rulesB = new Chess(Fen.asOtherColor(fen))
 
     if (moveA.dest === moveB.dest) return [false, false];
+    if (moveA.orig === moveB.dest && moveB.orig === moveA.dest &&
+        rulesA.get(moveA.orig).type !== 'n') return [false, false];
 
     const resA1 = rulesA.move({from:moveA.orig, to:moveA.dest});
     if (!resA1) return console.error("Unexpected invalid move in arbitration");

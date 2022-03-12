@@ -27,7 +27,7 @@ const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const getMoveSquares = (rules, square) => rules.moves({square, verbose:true}).map(mv => mv.to)
 const moveBy = (rules, m) => getMoveSquares(rules, m.orig).includes(m.dest);
 
-export default function Board ({color, started}) {
+export default function Board ({color}) {
     const [fen, setFen] = useState(Fen.asColor(STARTING_FEN, color));
     useEffect(() => setFen(Fen.asColor(STARTING_FEN, color)), [color]);
 
@@ -51,6 +51,8 @@ export default function Board ({color, started}) {
 
     const sendFullMove = useCallback((moveStr) => sendData("move", moveStr), [])
 
+    const myCurrentMove = (mvs) =>
+        mvs.at(-1).filter(m => moveBy(myRules, m)).map(m=>({...m, status:"valid"}))[0];
     const submitMove = () => {
         const move = moves.at(-1).filter(m => moveBy(myRules, m))[0];
         const moveStr = "noise"+"=="+move.orig+"=="+move.dest+"=="+"noise"
@@ -58,10 +60,9 @@ export default function Board ({color, started}) {
         setSubmitted({move, moveStr, hash})
 
         // remove opp moves
-        // TODO: verify working
         setMoves(mvs => [
             ...mvs.slice(0, -1),
-            mvs.at(-1).filter(m => moveBy(myRules, m)),
+            [myCurrentMove(mvs)],
         ]);
 
         sendData("submit", hash);
@@ -128,6 +129,9 @@ export default function Board ({color, started}) {
             fen,
             orientation: color === 'random' ? 'white' : color,
             turnColor: color,
+            lastMove: (moves.at(-2) || []).map(
+                (mv) => mv.status === "valid" ? [mv.orig, mv.dest] : [mv.orig]
+            ).flat(),
             animation: {
                 enabled: false,
                 // duration: 50,
@@ -154,9 +158,11 @@ export default function Board ({color, started}) {
             
             drawable:{
                 brushes:BRUSHES,
-                autoShapes: moves.at(-1).map(({orig, dest, status}) => ({orig, dest, brush:status})),
+                autoShapes: (
+                    moves.at(-1).length ? moves.at(-1) : (moves.at(-2) || [])
+                ).map(({orig, dest, status}) => ({orig, dest, brush:status})),
             },
         }}/>
-        { started && <button onClick={submitMove} disabled={submitted}> Submit </button> }
+        <button onClick={submitMove} disabled={!myCurrentMove(moves) || submitted}> Submit </button>
     </div> 
 }
