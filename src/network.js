@@ -1,13 +1,20 @@
 import Peer from 'peerjs';
+import { useEffect } from 'react';
 
 let handlers = {};
 const registerHandler = (type, handler) => {
     if (handlers[type] === undefined) handlers[type] = [];
     handlers[type].push(handler);
-}
+};
 const unregisterHandler = (type, handler) => {
     handlers[type] = handlers[type].filter(h => h !== handler);
-}
+};
+const useHandler = (type, memoizedCallback) => {
+    useEffect(() => {
+        registerHandler(type, memoizedCallback);
+        return () => unregisterHandler(type, memoizedCallback);
+    }, [type, memoizedCallback]);
+};
 
 const dataHandler = (data) => {
     console.log("recieved", data.message, data.data);
@@ -51,4 +58,4 @@ function sendData(message, data={}) {
     CONN.send({message, data});
 }
 
-export { registerHandler, unregisterHandler, connect, sendData };
+export { useHandler, connect, sendData, };

@@ -4,3 +4,8 @@ export function asColor(fen, color) {
     return fen.join(' ');
 }
 
+export function asOtherColor(fen) {
+    fen = fen.split(' ');
+    fen[1] = fen[1] === 'w' ? 'b' : 'w';
+    return fen.join(' ');
+}
