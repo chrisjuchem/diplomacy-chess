@@ -25,8 +25,8 @@ function App() {
             setSettings(old => ({...old, color: 'white'}));
             sendSettings.color = 'black';
         } else {
-            setSettings(old => ({...old, color: 'white'}));
-            sendSettings.color = 'black';
+            setSettings(old => ({...old, color: 'black'}));
+            sendSettings.color = 'white';
         }
         sendData("settings", sendSettings);
     }, [settings]));
@@ -43,19 +43,20 @@ function App() {
 
     return (
         <div className="App">
-            {!started && (
-                <div> 
-                    <div> 
-                        Enter a friend's id: 
-                        <input className="idInput" onChange={e=>setEnteredId(e.target.value)}/>
-                        <button onClick={()=>connect(enteredId)}> Go </button>
+            {started
+                ? <Board {...settings} {...{started}}/>
+                : (
+                    <div>
+                        <div>
+                            Enter a friend's id: 
+                            <input className="idInput" onChange={e=>setEnteredId(e.target.value)}/>
+                            <button onClick={()=>connect(enteredId)}> Go </button>
+                        </div>
+                        <div>
+                            Or send them yours: {peerId}
+                        </div>
                     </div>
-                    <div> 
-                        Or send them yours: {peerId}
-                    </div>
-                </div>
-            )}
-            <Board {...settings}/>
+                )}
         </div>
     );
 }

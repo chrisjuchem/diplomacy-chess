@@ -40,10 +40,8 @@ peer.on('error', console.error)
 
 
 function connect(targetId) {
-    if (CONN) {
-        console.error("Cannot establish two connections!")
-        return;
-    }
+    if (CONN) return console.error("Cannot establish two connections!");
+    if (targetId === peer.id) return console.warn("skipping own id");
     const conn = peer.connect(targetId, {serialization: "json"});
     conn.on('data', dataHandler);
     [CONN, HOST] = [conn, false];
