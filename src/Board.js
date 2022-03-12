@@ -22,8 +22,7 @@ const BRUSHES = {
 };
 const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-export default function Board () {
-    const color = 'black';
+export default function Board ({color}) {
     const [fen, setFen] = useState(Fen.asColor(STARTING_FEN, color));
     // const [showMove, setShowMoves] = useState([]); // {orig, dest, status}
     const [moves, setMoves] = useState([]); // {orig, dest, status}
@@ -31,11 +30,12 @@ export default function Board () {
 
     const rules = new Chess(fen);
 
+    useEffect(() => setFen(Fen.asColor(STARTING_FEN, color)), [color]);
 
-    return <Chessground width={600} height={600} config={{
+    return <Chessground width={400} height={420} config={{
         key:'diplomacy-chess',
         fen,
-        orientation: color,
+        orientation: color === 'random' ? 'white' : color,
         turnColor: color,
         animation: {
             enabled: false,
