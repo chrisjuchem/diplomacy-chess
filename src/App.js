@@ -10,6 +10,7 @@ function App() {
 
     const [settings, setSettings] = useState({
         color: 'random',
+        version: '0.0.1',
     });
 
     // id
@@ -33,10 +34,8 @@ function App() {
 
     // settings
     useHandler('settings', useCallback((data, host) => {
-        if (host) {
-            console.error("Recieved settings as host");
-            return;
-        }
+        if (host) return console.error("Recieved settings as host");
+        if (data.version !== settings.version) return console.error("Client version mismatch");
         setSettings(data);
         setStarted(true);
     }, []));
