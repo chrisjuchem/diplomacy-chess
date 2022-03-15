@@ -1,34 +1,48 @@
 import * as Fen from './fen.js'
 const Chess = require('chess.js');
 
-export default function arbitrate(moveA, moveB, fen) {
-    const rulesA = new Chess(fen);
-    const rulesB = new Chess(Fen.asOtherColor(fen))
+function rulesMove(move) {
+    return {from: move.orig, to: move.dest, promotion: 'q'}
+}
 
-    console.log(moveA, moveB);
+export default function arbitrate(moves, fen) {
+    const rulesW = new Chess(Fen.asColor(fen, 'w'));
+    const rulesB = new Chess(Fen.asColor(fen, 'b'));
 
-    if (moveA.dest === moveB.dest) return [false, false];
-    if (moveA.orig === moveB.dest && moveB.orig === moveA.dest &&
-        rulesA.get(moveA.orig).type !== 'n') return [false, false];
+    let moveW, moveB, flipped;
+    if (rulesW.get(moves[0].orig).color === 'w') {
+        [moveW, moveB] = moves;
+        flipped = false;
+    } else {
+        [moveB, moveW] = moves;
+        flipped = true;
+    }
 
-    const resA1 = rulesA.move({from:moveA.orig, to:moveA.dest, promotion: 'q'});
-    // if (!resA1) return console.error("Unexpected invalid move in arbitration");
-    const bInCheck = rulesA.in_check();
-    const resB2 = rulesA.move({from:moveB.orig, to:moveB.dest, promotion: 'q'});
+    if (moves.length === 0) return [null, null];
+    if (moves.length === 1) {
+        const rules = rulesW.get(moves[0].orig).color === 'w' ? rulesW : rulesB;
+        return [rules.move(rulesMove(moves[0]), {legal: false}), null];
+    }
 
-    let resB1 = rulesB.move({from:moveB.orig, to:moveB.dest, promotion: 'q'});
-    // if (!resB1) return console.error("Unexpected invalid move in arbitration");
-    const aInCheck = rulesB.in_check();
-    const resA2 = rulesB.move({from:moveA.orig, to:moveA.dest, promotion: 'q'});
 
-    // if the moving piece is captured, let it move anyway
-    // or if a check was made
-    const resA = resA2 ? resA2 : (
-        (resB1.captured && (resB1.to === resA1.from)) || aInCheck
-    ) ? resA1 : resA2;
-    const resB = resB2 ? resB2 : (
-        (resA1.captured && (resA1.to === resB1.from)) || bInCheck
-    ) ? resB1 : resB2;
+    // TODO re add for knights
+    // // disallow swapping places
+    // if (moveW.orig === moveB.dest && moveB.orig === moveW.dest &&
+    //     rulesW.get(moveW.orig).type !== 'n') return [false, false];
 
-    return [resA, resB];
+    //{legal: false} allows moving while in check
+    const resW1 = rulesW.move(rulesMove(moveW), {legal: false});
+    rulesW.set_turn('b');
+    const resB2 = rulesW.move(rulesMove(moveB), {legal: false});
+
+    const resB1 = rulesB.move(rulesMove(moveB), {legal: false});
+    rulesB.set_turn('w');
+    const resW2 = rulesB.move(rulesMove(moveW), {legal: false});
+
+
+    // disallow landing on the same square
+    // TODO if it leads to conflicting results
+    if (moveW.dest === moveB.dest) return [false, false];
+
+    return flipped ? [resB2, resW2] : [resW2, resB2];
 }

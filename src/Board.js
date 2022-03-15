@@ -23,9 +23,7 @@ const BRUSHES = {
     },
 };
 const STARTING_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
-const getMoveSquares = (rules, square) => rules.moves({square, verbose:true}).map(mv => mv.to)
-const moveBy = (rules, m) => getMoveSquares(rules, m.orig).includes(m.dest);
+const ALL_SQUARES = "abcdefgh".split('').map(a => "12345678".split('').map(n => a+n)).flat()
 
 export default function Board ({color}) {
     const [fen, setFen] = useState(Fen.asColor(STARTING_FEN, color));
@@ -36,25 +34,33 @@ export default function Board ({color}) {
     const [oppHash, setOppHash] = useState(false);
     const [oppMoveStr, setOppMoveStr] = useState(false);
 
-    const [myRules, oppRules, validMoves] = useMemo(() => {
+    const [rules, validMoves] = useMemo(() => {
         const rules = new Chess(fen);
-        const rules2 = new Chess(Fen.asOtherColor(fen));
-        function getMoves(r) {
-            const moves = "abcdefgh".split('').map(a => "12345678".split('').map(n => [
-                a+n, getMoveSquares(r, a+n)
-            ])).flat().filter(([_, moves]) => moves.length);
-            return moves;
-        }
-        return [rules, rules2, new Map([...getMoves(rules), ...getMoves(rules2)])];
-    }, [fen]);
-    
+        const allowedmoves = new Map(ALL_SQUARES.map(sq => {
+            const piece = rules.get(sq);
+            if (!piece) return [sq, []];
+            const emptyRules = new Chess(Fen.empty(fen, piece.color));
+            emptyRules.put(piece, sq);
+            if (piece.type == 'p') { //enable pawn captures
+                const baseIndex = ALL_SQUARES.indexOf(sq);
+                [7, 9, -7, -9].forEach(offset => {
+                    emptyRules.put({type:'p', color:piece.color==='w'?'b':'w'}, ALL_SQUARES[baseIndex + offset]);
+                })
+            }
+            const choices = emptyRules.moves({square:sq, verbose:true, legal:false}).map(m=>m.to);
+            const previousMove = (moves.at(-2) || []).filter(mv => mv.orig === sq).map(mv => mv.dest);
+            return [sq, choices.filter(to => !previousMove.includes(to))];
+        }));
+        return [rules, allowedmoves];
+    }, [fen, moves]);
+    const moveColor = useCallback((mv)=> rules.get(mv.orig)?.color, [rules])
 
     const sendFullMove = useCallback((moveStr) => sendData("move", moveStr), [])
 
     const myCurrentMove = (mvs) =>
-        mvs.at(-1).filter(m => moveBy(myRules, m)).map(m=>({...m, status:"valid"}))[0];
+        mvs.at(-1).filter(m => moveColor(m) === color[0]).map(m=>({...m, status:"valid"}))[0];
     const submitMove = () => {
-        const move = moves.at(-1).filter(m => moveBy(myRules, m))[0];
+        const move = myCurrentMove(moves);
         const moveStr = "noise"+"=="+move.orig+"=="+move.dest+"=="+"noise"
         const hash = "AAA";
         setSubmitted({move, moveStr, hash})
@@ -67,21 +73,57 @@ export default function Board ({color}) {
 
         sendData("submit", hash);
 
-        if (oppHash) sendFullMove(moveStr); // TODO need to do after render
+        if (oppHash) sendFullMove(moveStr);
     };
 
     useHandler("submit", useCallback((hash) => {
         if (oppHash) return console.error("recieved double move");
         if (!hash) return console.error("submit missing hash");
 
-        setOppHash(hash); // TODO need to do after render
+        setOppHash(hash);
 
         if (submitted) sendFullMove(submitted.moveStr);
     }, [submitted, oppHash, sendFullMove]));
 
     useHandler("move", setOppMoveStr);
 
-    const processMove = useCallback(() => {
+    const processMoves = useCallback((moves, commit=false) => {
+        //validate rules
+        const results = arbitrate(moves, fen);
+
+        moves.forEach((mv, i) => {
+            const res = results[i]
+            if (res) {
+                mv.san = res.san;
+                mv.status = commit ? 'valid' : 'submitted';
+            } else {
+                mv.status = 'invalid';
+            }
+        });
+
+        if (commit) {
+            setFen(Fen.processMoves(fen, results));
+            setMoves(mvs => [
+                ...mvs.slice(0, -1),
+                moves,
+                []
+            ]);
+    
+            setSubmitted(false);
+            setOppHash(false);
+            setOppMoveStr(false);
+        } else {
+            setMoves(mvs => [
+                ...mvs.slice(0, -1),
+                moves,
+            ]);
+        }
+
+    }, [fen]);
+    
+    useEffect(() => {
+        if (!oppMoveStr) return;
+
         // if (hash(moveStr) !== oppSubmitted) {
         if ("AAA" !== oppHash) return console.error("hash mismatch", oppHash);
         const parts = oppMoveStr.split("==");
@@ -89,39 +131,9 @@ export default function Board ({color}) {
         const [orig, dest] = parts.slice(1,3);
         const oppMove = {orig, dest};
         const myMove = submitted.move;
-        if (!moveBy(oppRules, oppMove)) return console.error("illegal move");
-
-        //validate rules
-        const [myMoveRes, oppMoveRes] = arbitrate(myMove, oppMove, fen);
-        setFen(Fen.processMoves(fen, myMoveRes, oppMoveRes));
-
-        if (myMoveRes) {
-            myMove.san = myMoveRes.san;
-            myMove.status = 'valid';
-        } else {
-            myMove.status = 'invalid';
-        }
-        if (oppMoveRes) {
-            oppMove.san = oppMoveRes.san;
-            oppMove.status = 'valid';
-        } else {
-            oppMove.status = 'invalid';
-        }
-
-        setMoves(mvs => [
-            ...mvs.slice(0, -1),
-            [myMove, oppMove],
-            []
-        ]);
-
-        setSubmitted(false);
-        setOppHash(false);
-        setOppMoveStr(false);
-    }, [oppMoveStr, oppHash, oppRules, submitted, fen]);
-    
-    useEffect(() => {
-        if (oppMoveStr) processMove();
-    }, [oppMoveStr, processMove])
+  
+        processMoves([myMove, oppMove], true);
+    }, [submitted, oppMoveStr, oppHash, processMoves])
 
     return <div>
         <Chessground width={400} height={420} config={{
@@ -140,23 +152,22 @@ export default function Board ({color}) {
                 free: false,
                 color: (submitted.move || color === 'random') ? undefined : 'both',
                 dests: validMoves,
+                // showDests: false,
                 events: {
-                    after: (orig, dest, _metadata) => {
-                        setMoves(mvs => [
-                            ...mvs.slice(0, -1),
-                            [
-                                ...mvs.at(-1).filter(m => (
-                                    // remove moves by same color
-                                    moveBy(myRules, m) !== moveBy(myRules, {orig, dest})
-                                )),
-                                {orig, dest, status:'submitted'},
-                            ],
-                        ]);
-                    }
+                    after: (orig, dest, _metadata) => processMoves(
+                        [
+                            ...moves.at(-1).filter(m => (
+                                // remove moves by same color
+                                moveColor(m) !== moveColor({orig})
+                            )),
+                            {orig, dest, status:'submitted'},
+                        ],
+                    ),
                 },
             },
             
             drawable:{
+                enabled: false,
                 brushes:BRUSHES,
                 autoShapes: (
                     moves.at(-1).length ? moves.at(-1) : (moves.at(-2) || [])

@@ -1,5 +1,12 @@
 const Chess = require("chess.js");
 
+export function empty(fen, color){
+    fen = fen.split(' ');
+    fen[0] = '8/8/8/8/8/8/8/8';
+    if (color) fen[1] = color[0];
+    return fen.join(' ');
+}
+
 export function asColor(fen, color) {
     fen = fen.split(' ');
     fen[1] = color[0];
@@ -12,17 +19,45 @@ export function asOtherColor(fen) {
     return fen.join(' ');
 }
 
-export function processMoves(fen, mv1, mv2) {
+export function processMoves(fen, moves) {
     const rules = new Chess(fen);
 
     fen = fen.split(' ');
 
-    // if (mv1) rules.remove(mv1.capture);
-    // if (mv2) rules.remove(mv2.capture);
-    if (mv1) rules.remove(mv1.from);
-    if (mv2) rules.remove(mv2.from);
-    if (mv1) rules.put({color: mv1.color, type: mv1.promotion || mv1.piece}, mv1.to);
-    if (mv2) rules.put({color: mv2.color, type: mv2.promotion || mv2.piece}, mv2.to);
+    moves.forEach(mv => {
+        if (mv) {
+            rules.remove(mv.from);
+            rules.put({color: mv.color, type: mv.promotion || mv.piece}, mv.to);
+            // en passant
+            // if (mv.flags.includes('b')) {
+            //     fen[3] = mv.to.replace('4', '3').replace('5', '6'); //TODO handle doble push
+            // }
+            // if (mv.flags.includes('e')) {
+            //     rules.remove(mv.to.replace('3', '4').replace('6', '5'));
+            // }
+
+            //castling
+            if (mv.flags.includes("k") || mv.flags.includes("q")) {
+                const rank = mv.color === 'w' ? '1' : '8';
+                const [rkFrom, rkTo] = mv.flags.includes("k") ? ['h', 'f'] : ['a', 'd'];
+                rules.remove(rkFrom+rank);
+                rules.put({color: mv.color, type: 'r'}, rkTo+rank);
+            }
+            //remove castling privledge
+            if ((mv.color === 'w' && mv.piece === 'k') || [mv.from, mv.to].includes('a1')) {
+                fen[2] = fen[2].replace('Q', '')
+            }
+            if ((mv.color === 'w' && mv.piece === 'k') || [mv.from, mv.to].includes('h1')) {
+                fen[2] = fen[2].replace('K', '')
+            }
+            if ((mv.color === 'b' && mv.piece === 'k') || [mv.from, mv.to].includes('a8')) {
+                fen[2] = fen[2].replace('q', '')
+            }
+            if ((mv.color === 'b' && mv.piece === 'k') || [mv.from, mv.to].includes('h8')) {
+                fen[2] = fen[2].replace('k', '')
+            }
+        }
+    })
 
     const fen2 = rules.fen().split(' ');
 
