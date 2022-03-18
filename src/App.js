@@ -5,16 +5,23 @@ import { useHandler, connect, sendData } from './network'
 
 function App() {
     const [started, setStarted] = useState(false);
-    const [peerId, setPeerId] = useState(null);
-    const [enteredId, setEnteredId] = useState('');
-
     const [settings, setSettings] = useState({
         color: 'random',
         version: '0.0.2',
     });
 
+    const [myId, setMyId] = useState(null);
+    const peerId = new URLSearchParams(window.location.search).get('id');
+    const inviteLink = `${window.location.href}?id=${myId}`;
+
     // id
-    useHandler('id', setPeerId);
+    useHandler('id', useCallback((id) => {
+        if (peerId) {
+            connect(peerId);
+        } else {
+            setMyId(id);
+        }
+    }, [peerId]));
 
     // connected
     useHandler("connected", useCallback(() => {
@@ -40,20 +47,27 @@ function App() {
         setStarted(true);
     }, []));
 
+    const copyInviteLink = () => navigator.clipboard.writeText(inviteLink);
+
     return (
         <div className="App">
             {started
                 ? <Board {...settings} {...{started}}/>
                 : (
                     <div>
-                        <div>
-                            Enter a friend's id: 
-                            <input className="idInput" onChange={e=>setEnteredId(e.target.value)}/>
-                            <button onClick={()=>connect(enteredId)}> Go </button>
-                        </div>
-                        <div>
-                            Or send them yours: {peerId}
-                        </div>
+                        {peerId
+                          ? "Joining game..."
+                          : myId
+                            ? <>
+                                <div> Send this invite link to a friend: </div>
+                                <div>
+                                    {inviteLink} <button onClick={copyInviteLink}>
+                                        Copy
+                                    </button>
+                                </div>
+                                </>
+                            : "Generating invite link..."
+                        }
                     </div>
                 )}
         </div>
