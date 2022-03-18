@@ -45,16 +45,19 @@ export function processMoves(fen, moves) {
             }
             //remove castling privledge
             if ((mv.color === 'w' && mv.piece === 'k') || [mv.from, mv.to].includes('a1')) {
-                fen[2] = fen[2].replace('Q', '')
+                fen[2] = fen[2].replace('Q', '');
             }
             if ((mv.color === 'w' && mv.piece === 'k') || [mv.from, mv.to].includes('h1')) {
-                fen[2] = fen[2].replace('K', '')
+                fen[2] = fen[2].replace('K', '');
             }
             if ((mv.color === 'b' && mv.piece === 'k') || [mv.from, mv.to].includes('a8')) {
-                fen[2] = fen[2].replace('q', '')
+                fen[2] = fen[2].replace('q', '');
             }
             if ((mv.color === 'b' && mv.piece === 'k') || [mv.from, mv.to].includes('h8')) {
-                fen[2] = fen[2].replace('k', '')
+                fen[2] = fen[2].replace('k', '');
+            }
+            if (!fen[2]) {
+                fen[2] = '-';
             }
         }
     })
