@@ -47,7 +47,10 @@ function App() {
         setStarted(true);
     }, []));
 
-    const copyInviteLink = () => navigator.clipboard.writeText(inviteLink);
+    const copyInviteLink = (e) => {
+        navigator.clipboard.writeText(inviteLink);
+        e.target.innerText = 'Copied!';
+    };
 
     return (
         <div className="App">
