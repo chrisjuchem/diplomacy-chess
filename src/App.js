@@ -1,6 +1,7 @@
 import './App.css';
 import { useCallback, useState } from 'react';
 import Board from './Board';
+import {Rules, Modal} from './RulesModal'
 import { useHandler, connect, sendData } from './network'
 
 function App() {
@@ -13,6 +14,8 @@ function App() {
     const [myId, setMyId] = useState(null);
     const peerId = new URLSearchParams(window.location.search).get('id');
     const inviteLink = `${window.location.href}?id=${myId}`;
+
+    const [showRules, setShowRules] = useState(false);
 
     // id
     useHandler('id', useCallback((id) => {
@@ -54,25 +57,29 @@ function App() {
 
     return (
         <div className="App">
-            {started
-                ? <Board {...settings} {...{started}}/>
-                : (
-                    <div>
-                        {peerId
-                          ? "Joining game..."
-                          : myId
-                            ? <>
-                                <div> Send this invite link to a friend: </div>
-                                <div>
-                                    {inviteLink} <button onClick={copyInviteLink}>
-                                        Copy
-                                    </button>
-                                </div>
-                                </>
-                            : "Generating invite link..."
-                        }
-                    </div>
-                )}
+            <>
+                {started
+                    ? <Board {...settings} {...{started}}/>
+                    : (
+                        <div>
+                            {peerId
+                              ? "Joining game..."
+                              : myId
+                                ? <>
+                                    <div> Send this invite link to a friend: </div>
+                                    <div>
+                                        {inviteLink} <button onClick={copyInviteLink}>
+                                            Copy
+                                        </button>
+                                    </div>
+                                    </>
+                                : "Generating invite link..."
+                            }
+                        </div>
+                    )}
+                <div className="howToPlay" onClick={e => setShowRules(true)}> ⓘ How to play </div>
+                {showRules ? <Modal close={() => setShowRules(false)}> <Rules/> </Modal> : null}
+            </>
         </div>
     );
 }
