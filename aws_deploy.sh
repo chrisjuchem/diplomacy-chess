@@ -1,6 +1,7 @@
-set -e
+# This is run by github actions when pushing to main.
+# Set AWS_ACCESS_KEY_ID & AWS_SECRET_ACCESS_KEY to run manually.
 
-. aws_secrets.sh
+set -e
 
 aws s3 cp ./build/index.html s3://www.chrisjuchem.dev/diplomacy-chess
 

@@ -17,3 +17,4 @@ Features:
 
 Development:
     fix `yarn start`
+    stop inlining css and js
