@@ -63,7 +63,12 @@ function App() {
                     : (
                         <div>
                             {peerId
-                              ? "Joining game..."
+                              ? <>
+                                <div> Joining game... </div>
+                                <button onClick={e =>
+                                    window.location = window.location.origin + window.location.pathname}
+                                > Cancel </button>
+                                </>
                               : myId
                                 ? <>
                                     <div> Send this invite link to a friend: </div>
