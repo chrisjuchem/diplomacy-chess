@@ -44,7 +44,7 @@ function App() {
 
     // settings
     useHandler('settings', useCallback((data, host) => {
-        if (host) return console.error("Recieved settings as host");
+        if (host) return console.error("Received settings as host");
         if (data.version !== settings.version) return console.error("Client version mismatch");
         setSettings(data);
         setStarted(true);

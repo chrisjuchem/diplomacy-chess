@@ -1,5 +1,17 @@
-Favicon/manifest in build
-version on screen
-join from id in query param
+Build:
+    Favicon/manifest in build
+    Uncaught SyntaxError: Unexpected token '<'
 
-settings ui
+Rules:
+
+UI:
+    prevent moving through own piece
+    allow previous move (in red)
+
+    show last move
+
+
+Features:
+    version on screen
+    settings ui
+    cancel joining

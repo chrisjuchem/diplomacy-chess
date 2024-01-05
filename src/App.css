@@ -20,7 +20,15 @@
 }
 
 .board {
-  width: 400px;
+  width: min(400px, 90vmin);
+  height: min(400px, 90vmin);
+}
+coords.files {
+    left: min(18px, 4.5vmin) !important;
+}
+coords.ranks {
+    top: max(-16px, -4vmin) !important;
+    left: 0px !important;
 }
 
 .idInput {
@@ -31,6 +39,7 @@
 
 button {
   font-size: calc(10px + 2vmin);
+  margin: 6px;
 }
 
 .howToPlay {

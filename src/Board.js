@@ -135,45 +135,47 @@ export default function Board ({color}) {
         processMoves([myMove, oppMove], true);
     }, [submitted, oppMoveStr, oppHash, processMoves])
 
-    return <div>
-        <Chessground width={400} height={420} config={{
-            key:'diplomacy-chess',
-            fen,
-            orientation: color === 'random' ? 'white' : color,
-            turnColor: color,
-            lastMove: (moves.at(-2) || []).map(
-                (mv) => mv.status === "valid" ? [mv.orig, mv.dest] : [mv.orig]
-            ).flat(),
-            animation: {
-                enabled: false,
-                // duration: 50,
-            },
-            movable: {
-                free: false,
-                color: (submitted.move || color === 'random') ? undefined : 'both',
-                dests: validMoves,
-                // showDests: false,
-                events: {
-                    after: (orig, dest, _metadata) => processMoves(
-                        [
-                            ...moves.at(-1).filter(m => (
-                                // remove moves by same color
-                                moveColor(m) !== moveColor({orig})
-                            )),
-                            {orig, dest, status:'submitted'},
-                        ],
-                    ),
+    return <>
+        <div className="board">
+            <Chessground contained={true} config={{
+                key:'diplomacy-chess',
+                fen,
+                orientation: color === 'random' ? 'white' : color,
+                turnColor: color,
+                lastMove: (moves.at(-2) || []).map(
+                    (mv) => mv.status === "valid" ? [mv.orig, mv.dest] : [mv.orig]
+                ).flat(),
+                animation: {
+                    enabled: false,
+                    // duration: 50,
                 },
-            },
-            
-            drawable:{
-                enabled: false,
-                brushes:BRUSHES,
-                autoShapes: (
-                    moves.at(-1).length ? moves.at(-1) : (moves.at(-2) || [])
-                ).map(({orig, dest, status}) => ({orig, dest, brush:status})),
-            },
-        }}/>
+                movable: {
+                    free: false,
+                    color: (submitted.move || color === 'random') ? undefined : 'both',
+                    dests: validMoves,
+                    // showDests: false,
+                    events: {
+                        after: (orig, dest, _metadata) => processMoves(
+                            [
+                                ...moves.at(-1).filter(m => (
+                                    // remove moves by same color
+                                    moveColor(m) !== moveColor({orig})
+                                )),
+                                {orig, dest, status:'submitted'},
+                            ],
+                        ),
+                    },
+                },
+
+                drawable:{
+                    enabled: false,
+                    brushes:BRUSHES,
+                    autoShapes: (
+                        moves.at(-1).length ? moves.at(-1) : (moves.at(-2) || [])
+                    ).map(({orig, dest, status}) => ({orig, dest, brush:status})),
+                },
+            }}/>
+        </div>
         <button onClick={submitMove} disabled={!myCurrentMove(moves) || submitted}> Submit </button>
-    </div> 
+    </>;
 }
