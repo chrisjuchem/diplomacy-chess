@@ -15,3 +15,6 @@ Features:
     version on screen
     settings ui
     cancel joining
+
+Development:
+    fix `yarn start`
