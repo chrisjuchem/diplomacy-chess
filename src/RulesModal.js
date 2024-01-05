@@ -103,7 +103,7 @@ function Rules () {
         <div className="rulesImgs">
             {info.images.map(imgName =>
                 <div className="rulesImg">
-                    <img key={imgName} src={`tutorial/${imgName}.png`} />
+                    <img key={imgName} src={`diplomacy-chess/tutorial/${imgName}.png`} />
                 </div>
             )}
         </div>
