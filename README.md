@@ -1,7 +1,7 @@
 # Diplomacy Chess
 
 Web-based multiplayer chess variant inspired by the strategy game Diplomacy. 
-Deployed at [chrisjuchem.dev/diplomacy-chess](chrisjuchem.dev/diplomacy-chess).
+Deployed at [chrisjuchem.dev/diplomacy-chess](http://chrisjuchem.dev/diplomacy-chess).
 
 # Deployment
 
