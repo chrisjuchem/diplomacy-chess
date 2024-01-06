@@ -24,17 +24,20 @@ export function processMoves(fen, moves) {
 
     fen = fen.split(' ');
 
+    const en_passants = [];
+
     moves.forEach(mv => {
         if (mv) {
             rules.remove(mv.from);
             rules.put({color: mv.color, type: mv.promotion || mv.piece}, mv.to);
+
             // en passant
             // if (mv.flags.includes('b')) {
-            //     fen[3] = mv.to.replace('4', '3').replace('5', '6'); //TODO handle doble push
+            //     fen[3] = mv.to.replace('4', '3').replace('5', '6'); //TODO handle double push
             // }
-            // if (mv.flags.includes('e')) {
-            //     rules.remove(mv.to.replace('3', '4').replace('6', '5'));
-            // }
+            if (mv.flags.includes('e')) {
+                en_passants.push(mv.to.replace('3', '4').replace('6', '5'));
+            }
 
             //castling
             if (mv.flags.includes("k") || mv.flags.includes("q")) {
@@ -61,6 +64,8 @@ export function processMoves(fen, moves) {
             }
         }
     })
+
+    en_passants.forEach(ep => rules.remove(ep));
 
     const fen2 = rules.fen().split(' ');
 

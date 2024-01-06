@@ -88,6 +88,13 @@ const PANELS = [
         ],
         images: ["check","checkcastle"]
     },
+    {
+        text: [
+            "En passant moves are possible, but only if you can predict when your opponent will push their pawn.",
+            "Since the en-passant capture on the second board would happen after black's next move, it will be too late."
+        ],
+        images: ["enpassant1","enpassant2"]
+    }
 ];
 
 function Rules () {
