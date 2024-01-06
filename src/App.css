@@ -89,10 +89,10 @@ button {
 .rulesNavBtn {
   display: inline-block;
   cursor: pointer;
-  &.small {
-    font-size: calc(8px + 1vmin);
-  }
   min-width: 5vmin;
+}
+.rulesNavBtn.small {
+  font-size: calc(8px + 1vmin);
 }
 
 .rulesTitle {
