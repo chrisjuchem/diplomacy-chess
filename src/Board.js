@@ -135,7 +135,20 @@ export default function Board ({color}) {
         processMoves([myMove, oppMove], true);
     }, [submitted, oppMoveStr, oppHash, processMoves])
 
+    const ourKingExists = fen.split(' ')[0].includes(color[0] === 'w' ? 'K' : 'k');
+    const oppKingExists = fen.split(' ')[0].includes(color[0] === 'w' ? 'k' : 'K');
+    console.log(fen.split(' ')[0], ourKingExists, oppKingExists)
+    let winString;
+    if (!ourKingExists && !oppKingExists) {
+        winString = "The game is a draw!"
+    } else if (!ourKingExists) {
+        winString = "You lost!"
+    } else if (!oppKingExists) {
+        winString = "You won!"
+    }
+
     return <>
+        {winString}
         <div className="board">
             <Chessground contained={true} config={{
                 key:'diplomacy-chess',
@@ -151,7 +164,7 @@ export default function Board ({color}) {
                 },
                 movable: {
                     free: false,
-                    color: (submitted.move || color === 'random') ? undefined : 'both',
+                    color: (submitted.move || color === 'random' || winString) ? undefined : 'both',
                     dests: validMoves,
                     // showDests: false,
                     events: {

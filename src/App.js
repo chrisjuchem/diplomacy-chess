@@ -8,7 +8,7 @@ function App() {
     const [started, setStarted] = useState(false);
     const [settings, setSettings] = useState({
         color: 'random',
-        version: '0.0.3',
+        version: '0.0.4',
     });
 
     const [myId, setMyId] = useState(null);
